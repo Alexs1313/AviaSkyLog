@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   btnText: {
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: '900',
     color: '#fff',
   },

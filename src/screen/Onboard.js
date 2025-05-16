@@ -1,69 +1,78 @@
 import {
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import Layout from '../components/Layout';
 import LinearGradient from 'react-native-linear-gradient';
 import {useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 
+import Layout from '../components/Layout';
+import {useStore} from '../store/context';
+
 const Onboard = () => {
   const [userName, setUserName] = useState('');
+  const {saveUserName} = useStore();
   const navigation = useNavigation();
 
   return (
     <Layout>
-      <View style={styles.container}>
-        <View style={{width: 310}}>
-          <Text style={styles.title}>Let's get to know each other?</Text>
-        </View>
-        <View style={{width: 230}}>
-          <Text style={styles.secondaryText}>
-            We do not collect user information, everything is stored only on
-            your device
-          </Text>
-        </View>
-        <View style={{marginBottom: 20}}>
-          <LinearGradient
-            colors={['#FFCCC8', '#666666']} // Gradient colors
-            start={{x: 0, y: 0}}
-            end={{x: 1, y: 0}}
-            style={styles.gradientBorder}>
-            <View style={styles.innerContainer}>
-              <TextInput
-                style={styles.textInput}
-                value={userName}
-                onChangeText={setUserName}
-                placeholder="Enter text"
-                placeholderTextColor="#888"
-              />
-            </View>
-          </LinearGradient>
-        </View>
+      <ScrollView>
+        <View style={styles.container}>
+          <View style={{width: 310}}>
+            <Text style={styles.title}>Let's get to know each other?</Text>
+          </View>
+          <View style={{width: 230}}>
+            <Text style={styles.secondaryText}>
+              We do not collect user information, everything is stored only on
+              your device
+            </Text>
+          </View>
+          <View style={{marginBottom: 20}}>
+            <LinearGradient
+              colors={['#FFCCC8', '#666666']} // Gradient colors
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 0}}
+              style={styles.gradientBorder}>
+              <View style={styles.innerContainer}>
+                <TextInput
+                  style={styles.textInput}
+                  value={userName}
+                  onChangeText={setUserName}
+                  placeholder="Enter text"
+                  placeholderTextColor="#888"
+                  maxLength={15}
+                />
+              </View>
+            </LinearGradient>
+          </View>
 
-        {userName !== '' && (
-          <LinearGradient
-            colors={['#FFCCC8', '#666666']} // Gradient colors
-            start={{x: 0, y: 0}}
-            end={{x: 1, y: 0}}
-            style={styles.gradientBorderButton}>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate('Home')}>
-              <LinearGradient
-                colors={['#F12B1C', '#B50D00', '#F12B1C']} // Gradient colors
-                start={{x: 0, y: 0}}
-                end={{x: 1, y: 0}}
-                style={styles.gradientButton}>
-                <Text style={styles.btnText}>Continue</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </LinearGradient>
-        )}
-      </View>
+          {userName !== '' && (
+            <LinearGradient
+              colors={['#FFCCC8', '#666666']} // Gradient colors
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 0}}
+              style={styles.gradientBorderButton}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => {
+                  navigation.navigate('Home'), saveUserName(userName);
+                }}>
+                <LinearGradient
+                  colors={['#F12B1C', '#B50D00', '#F12B1C']} // Gradient colors
+                  start={{x: 0, y: 0}}
+                  end={{x: 1, y: 0}}
+                  style={styles.gradientButton}>
+                  <Text style={styles.btnText}>Continue</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </LinearGradient>
+          )}
+        </View>
+      </ScrollView>
     </Layout>
   );
 };
@@ -117,6 +126,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     padding: 1,
     width: '50%',
+    marginBottom: 30,
   },
 });
 

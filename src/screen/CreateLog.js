@@ -1,5 +1,4 @@
 import {
-  Button,
   Image,
   ScrollView,
   StyleSheet,
@@ -7,20 +6,23 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Layout from '../components/Layout';
+import {launchImageLibrary} from 'react-native-image-picker';
+import {TextInput} from 'react-native-gesture-handler';
 import {useNavigation} from '@react-navigation/native';
-import AddBtn from '../components/AddBtn';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import {useState} from 'react';
 import LinearGradient from 'react-native-linear-gradient';
-import {TextInput} from 'react-native-gesture-handler';
-import {launchImageLibrary} from 'react-native-image-picker';
 
-const CreateLog = () => {
+import Layout from '../components/Layout';
+import {useStore} from '../store/context';
+
+const CreateLog = ({route}) => {
   const navigation = useNavigation();
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [timePickerVisible, setTimePickerVisibility] = useState(false);
   const [changePhoto, setChangePhoto] = useState(false);
+  const {saveFlightLog, handleSaveDiaryEntry, flightLog} = useStore();
+  const editLog = route.params;
   const [state, setState] = useState({
     id: Date.now(),
     date: '',
@@ -31,13 +33,11 @@ const CreateLog = () => {
     description: '',
   });
 
-  console.log('state', state);
-
   let options = {
     storageOptions: {
       path: 'image',
-      maxHeight: 600,
-      maxWidth: 600,
+      maxHeight: 700,
+      maxWidth: 700,
     },
   };
 
@@ -50,10 +50,6 @@ const CreateLog = () => {
     });
   };
 
-  const showDatePicker = () => {
-    setDatePickerVisibility(true);
-  };
-
   const hideDatePicker = () => {
     setTimePickerVisibility(false);
   };
@@ -63,21 +59,40 @@ const CreateLog = () => {
   };
 
   const handleConfirmDate = date => {
-    console.log('A date has been picked: ', date.toLocaleDateString());
+    setState(prev => ({
+      ...prev,
+      date: date.toLocaleDateString('en-GB'),
+    }));
     hideDatePicker();
   };
 
   const handleConfirmTime = time => {
-    console.log(
-      'A time has been picked: ',
-      time.toLocaleTimeString([], {
+    setState(prev => ({
+      ...prev,
+      time: time.toLocaleTimeString([], {
         hour: '2-digit',
         minute: '2-digit',
         hour12: false,
       }),
-    );
+    }));
     hideTimePicker();
   };
+
+  const handleSaveLog = () => {
+    saveFlightLog(state, editLog);
+
+    setTimeout(() => {
+      navigation.goBack();
+      if (flightLog.length === 0) {
+        handleSaveDiaryEntry();
+      }
+    }, 500);
+  };
+
+  const {date, time, departure, destination, description, image} = state;
+
+  const isDisabled =
+    !date || !time || !departure || !destination || !description || !image;
 
   return (
     <Layout>
@@ -90,7 +105,9 @@ const CreateLog = () => {
               <Image source={require('../assets/icons/back.png')} />
             </TouchableOpacity>
 
-            <Text style={styles.title}>CREATE FLIGHT LOG</Text>
+            <Text style={styles.title}>
+              {editLog ? 'EDIT' : 'CREATE FLIGHT LOG'}
+            </Text>
           </View>
         </View>
 
@@ -105,8 +122,7 @@ const CreateLog = () => {
               <View style={styles.innerContainer}>
                 <TextInput
                   style={[styles.textInput, {paddingRight: 40}]}
-                  // value={userName}
-                  // onChangeText={setUserName}
+                  value={editLog ? editLog.date : state.date}
                   placeholder="DD.MM.YY"
                   placeholderTextColor="#fff"
                   onFocus={() => setDatePickerVisibility(true)}
@@ -126,8 +142,7 @@ const CreateLog = () => {
               <View style={styles.innerContainer}>
                 <TextInput
                   style={styles.textInput}
-                  // value={userName}
-                  // onChangeText={setUserName}
+                  value={editLog ? editLog.time : state.time}
                   placeholder="00:00"
                   placeholderTextColor="#fff"
                   onFocus={() => setTimePickerVisibility(true)}
@@ -140,21 +155,25 @@ const CreateLog = () => {
             </LinearGradient>
           </View>
           <Text style={styles.sectionTitle}>ROUTE:</Text>
-          <View style={{gap: 37}}>
+          <View style={{gap: 37, marginHorizontal: 55}}>
             <View style={styles.sectionWrap}>
-              <Image source={require('../assets/icons/circle.png')} />
+              {!departure ? (
+                <Image source={require('../assets/icons/circle.png')} />
+              ) : (
+                <Image source={require('../assets/icons/fill.png')} />
+              )}
               <LinearGradient
                 colors={['#FFCCC8', '#666666']}
                 start={{x: 0, y: 0}}
                 end={{x: 1, y: 0}}
-                style={[styles.gradientBorder, {width: '73%'}]}>
+                style={[styles.gradientBorder, {width: '100%'}]}>
                 <View style={styles.innerContainer}>
                   <TextInput
                     style={[
                       styles.textInput,
                       {paddingLeft: 20, paddingRight: 20},
                     ]}
-                    value={state.departure}
+                    value={editLog ? editLog.departure : state.departure}
                     placeholder="Departure point"
                     placeholderTextColor="#484848"
                     onChangeText={value =>
@@ -167,25 +186,24 @@ const CreateLog = () => {
                 <Image source={require('../assets/icons/marker.png')} />
               </View>
             </View>
-
+            <Image
+              source={require('../assets/icons/line.png')}
+              style={{position: 'absolute', left: -36, top: 56}}
+            />
             <View style={styles.sectionWrap}>
-              <Image
-                source={require('../assets/icons/line.png')}
-                style={{position: 'absolute', left: 20, top: -40}}
-              />
               <Image source={require('../assets/icons/marker.png')} />
               <LinearGradient
                 colors={['#FFCCC8', '#666666']}
                 start={{x: 0, y: 0}}
                 end={{x: 1, y: 0}}
-                style={[styles.gradientBorder, {width: '73%'}]}>
+                style={[styles.gradientBorder, {width: '100%'}]}>
                 <View style={styles.innerContainer}>
                   <TextInput
                     style={[
                       styles.textInput,
                       {paddingLeft: 20, paddingRight: 20},
                     ]}
-                    value={state.destination}
+                    value={editLog ? editLog.destination : state.destination}
                     placeholder="Destination"
                     placeholderTextColor="#484848"
                     onChangeText={value =>
@@ -198,6 +216,7 @@ const CreateLog = () => {
                 <Image source={require('../assets/icons/marker.png')} />
               </View>
             </View>
+
             <Text style={styles.sectionTitle}>PHOTO:</Text>
           </View>
           <View>
@@ -259,8 +278,7 @@ const CreateLog = () => {
                   styles.textInput,
                   {paddingLeft: 30, paddingRight: 20, paddingTop: 18},
                 ]}
-                value={state.description}
-                // onChangeText={setUserName}
+                value={editLog ? editLog.description : state.description}
                 textAlignVertical="top"
                 placeholder="Write your impressions of the flight"
                 placeholderTextColor="#484848"
@@ -278,18 +296,15 @@ const CreateLog = () => {
             end={{x: 1, y: 0}}
             style={styles.gradientBorderSave}>
             <TouchableOpacity
+              disabled={isDisabled}
               activeOpacity={0.7}
-              onPress={() => navigation.navigate(navigateTo)}>
+              onPress={() => handleSaveLog()}>
               <LinearGradient
                 colors={['#F12B1C', '#B50D00', '#F12B1C']} // Gradient colors
                 start={{x: 0, y: 0}}
                 end={{x: 1, y: 0}}
                 style={styles.gradientButtonSave}>
-                <View
-                  style={{flexDirection: 'row', gap: 5, alignItems: 'center'}}>
-                  <Text style={styles.btnTextSave}>Save</Text>
-                  <Image source={require('../assets/icons/add.png')} />
-                </View>
+                <Text style={styles.btnTextSave}>Save</Text>
               </LinearGradient>
             </TouchableOpacity>
           </LinearGradient>

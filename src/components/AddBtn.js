@@ -1,15 +1,8 @@
 import {useNavigation} from '@react-navigation/native';
-import {
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  Vibration,
-  View,
-} from 'react-native';
+import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
-const AddBtn = ({navigateTo, title, width}) => {
+const AddBtn = ({navigateTo, title}) => {
   const navigation = useNavigation();
 
   return (
